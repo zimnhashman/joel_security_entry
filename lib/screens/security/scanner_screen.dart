@@ -3,9 +3,8 @@ import 'package:joel_security_entry/database/database_helper.dart';
 import 'package:joel_security_entry/widgets/student_card.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
-
 class SecurityPage extends StatefulWidget {
-  const SecurityPage({super.key});
+  const SecurityPage({Key? key}) : super(key: key);
 
   @override
   _SecurityPageState createState() => _SecurityPageState();
@@ -13,7 +12,8 @@ class SecurityPage extends StatefulWidget {
 
 class _SecurityPageState extends State<SecurityPage> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _qrCodeController = TextEditingController();
+  final TextEditingController _studentIdController = TextEditingController();
+  final TextEditingController _gradeController = TextEditingController();
   late final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   late Barcode result;
   bool showStudentCard = false;
@@ -41,9 +41,13 @@ class _SecurityPageState extends State<SecurityPage> {
               child: showStudentCard
                   ? StudentCard(
                 name: _nameController.text,
-                grade: 'Grade 10', // Example grade, replace with actual data
-                idNumber: '123456', // Example ID number, replace with actual data
-                onConfirmCheckIn: _logCheckIn,
+                grade: _gradeController.text,
+                idNumber: _studentIdController.text,
+                onConfirmCheckIn: () => _logCheckIn(
+                  _nameController.text,
+                  _studentIdController.text,
+                  _gradeController.text,
+                ),
               )
                   : Column(
                 children: [
@@ -53,8 +57,13 @@ class _SecurityPageState extends State<SecurityPage> {
                   ),
                   const SizedBox(height: 10.0),
                   TextField(
-                    controller: _qrCodeController,
-                    decoration: const InputDecoration(labelText: 'QR Code'),
+                    controller: _studentIdController,
+                    decoration: const InputDecoration(labelText: 'Student ID'),
+                  ),
+                  const SizedBox(height: 10.0),
+                  TextField(
+                    controller: _gradeController,
+                    decoration: const InputDecoration(labelText: 'Grade'),
                   ),
                   const SizedBox(height: 10.0),
                   ElevatedButton(
@@ -78,40 +87,64 @@ class _SecurityPageState extends State<SecurityPage> {
       });
 
       String? scannedCode = result.code;
-      Map<String, dynamic>? student = await DatabaseHelper.getStudentByQRCode(scannedCode!);
-
-      if (student != null) {
-        _nameController.text = student['name'];
-        _qrCodeController.text = scannedCode;
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid QR code!'),
-          ),
-        );
-      }
+      _processScannedData(scannedCode!);
     });
   }
 
-  void _manualCheckIn() {
-    String name = _nameController.text;
-    String qrCode = _qrCodeController.text;
+  void _processScannedData(String data) {
+    // Assuming the data format is "Name-StudentID-Grade"
+    List<String> parts = data.split('-');
 
-    if (name.isNotEmpty && qrCode.isNotEmpty) {
+    if (parts.length == 3) {
+      String name = parts[0];
+      String studentID = parts[1];
+      String grade = parts[2];
+
       setState(() {
-        showStudentCard = true;
+        _nameController.text = name;
+        _studentIdController.text = studentID;
+        _gradeController.text = grade;
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter both name and QR code!'),
+          content: Text('Invalid QR code format!'),
         ),
       );
     }
   }
 
-  void _logCheckIn() async {
-    // Log check-in time to database
+  void _manualCheckIn() {
+    String name = _nameController.text;
+    String studentID = _studentIdController.text;
+    String grade = _gradeController.text;
+
+    if (name.isNotEmpty && studentID.isNotEmpty && grade.isNotEmpty) {
+      setState(() {
+        showStudentCard = true;
+      });
+
+      _logCheckIn(name, studentID, grade);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter name, student ID, and grade!'),
+        ),
+      );
+    }
+  }
+
+  void _logCheckIn(String name, String studentID, String grade) async {
+    String currentDate = DateTime.now().toIso8601String(); // Get current date and time
+    Map<String, dynamic> checkInData = {
+      'studentID': studentID,
+      'grade': grade,
+      'checkInTime': currentDate,
+      'date': DateTime.now().toString().split(' ')[0], // Get current date
+    };
+
+    await DatabaseHelper.insertCheckIn(checkInData);
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Check-in logged successfully!'),
@@ -122,7 +155,8 @@ class _SecurityPageState extends State<SecurityPage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _qrCodeController.dispose();
+    _studentIdController.dispose();
+    _gradeController.dispose();
     super.dispose();
   }
 }

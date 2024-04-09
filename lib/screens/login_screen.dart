@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
     } else if (username == 'admin' && password == 'admin') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => AdminPage()),
+        MaterialPageRoute(builder: (context) => AdminScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

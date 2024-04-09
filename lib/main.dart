@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:joel_security_entry/screens/login_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -16,8 +17,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          color: Colors.red,
+          iconTheme: IconThemeData(
+            color: Colors.white, // Change the app bar icon color here
+          ),
+        ),
       ),
-      home:  LoginPage(),
+      home:  const LoginPage(),
     );
   }
 }
