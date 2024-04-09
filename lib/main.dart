@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:joel_security_entry/database/database_helper.dart';
 import 'package:joel_security_entry/screens/login_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await DatabaseHelper.initDatabase();
   runApp(const MyApp());
 }
 
