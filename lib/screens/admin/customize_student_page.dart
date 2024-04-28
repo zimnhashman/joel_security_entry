@@ -11,9 +11,9 @@ class CustomizeStudentPage extends StatefulWidget {
 }
 
 class _CustomizeStudentPageState extends State<CustomizeStudentPage> {
-  late String _studentName;
-  late String _studentGrade;
-  late bool _isCheckInDisabled;
+  String? _studentName;
+  String? _studentGrade;
+  bool _isCheckInDisabled = true;
 
   @override
   void initState() {
@@ -52,7 +52,9 @@ class _CustomizeStudentPageState extends State<CustomizeStudentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customize Student'),
+        title: const Text('Customize Student', style: TextStyle(
+          color: Colors.white,
+        ),),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

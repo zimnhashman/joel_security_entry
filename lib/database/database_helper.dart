@@ -16,11 +16,12 @@ class DatabaseHelper {
 
   static Future<Database> initDatabase() async {
     String path = join(await getDatabasesPath(), 'security_database.db');
+    print('Database path: $path');
 
     // Open the database. Create if it doesn't exist
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute(
           '''

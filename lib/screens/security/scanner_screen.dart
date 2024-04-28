@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:joel_security_entry/database/database_helper.dart';
 import 'package:joel_security_entry/widgets/student_card.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'dart:math' as math;
 
 class SecurityPage extends StatefulWidget {
   const SecurityPage({Key? key}) : super(key: key);
@@ -10,71 +11,94 @@ class SecurityPage extends StatefulWidget {
   _SecurityPageState createState() => _SecurityPageState();
 }
 
-class _SecurityPageState extends State<SecurityPage> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _studentIdController = TextEditingController();
-  final TextEditingController _gradeController = TextEditingController();
+class _SecurityPageState extends State
+    with SingleTickerProviderStateMixin {
+  late final TextEditingController _nameController = TextEditingController();
+  late final TextEditingController _studentIdController = TextEditingController();
+  late final TextEditingController _gradeController = TextEditingController();
   late final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   late Barcode result;
   bool showStudentCard = false;
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool _showQR = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _studentIdController.dispose();
+    _gradeController.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Security Page'),
+        title: const Text('Security Page', style: TextStyle(
+          color: Colors.white,
+        ),),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Expanded(
-              flex: 5,
-              child: QRView(
-                key: qrKey,
-                onQRViewCreated: _onQRViewCreated,
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: showStudentCard
-                  ? StudentCard(
-                name: _nameController.text,
-                grade: _gradeController.text,
-                idNumber: _studentIdController.text,
-                onConfirmCheckIn: () => _logCheckIn(
-                  _nameController.text,
-                  _studentIdController.text,
-                  _gradeController.text,
-                ),
-              )
-                  : Column(
-                children: [
-                  TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Student Name'),
-                  ),
-                  const SizedBox(height: 10.0),
-                  TextField(
-                    controller: _studentIdController,
-                    decoration: const InputDecoration(labelText: 'Student ID'),
-                  ),
-                  const SizedBox(height: 10.0),
-                  TextField(
-                    controller: _gradeController,
-                    decoration: const InputDecoration(labelText: 'Grade'),
-                  ),
-                  const SizedBox(height: 10.0),
-                  ElevatedButton(
-                    onPressed: _manualCheckIn,
-                    child: const Text('Manual Check-in'),
-                  ),
-                ],
-              ),
+            AnimatedBuilder(
+              animation: _animation,
+              builder: (context, child) {
+                return Transform(
+                  transform: Matrix4.identity()
+                    ..setEntry(3, 2, 0.002) // Perspective
+                    ..rotateY(math.pi * _animation.value), // Rotation
+                  alignment: Alignment.center,
+                  child: _showQR ? _buildQRContainer() : _buildStudentCard(),
+                );
+              },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildQRContainer() {
+    return Container(
+      width: 300,
+      height: 300,
+      child: QRView(
+        key: qrKey,
+        onQRViewCreated: _onQRViewCreated,
+      ),
+    );
+  }
+
+  Widget _buildStudentCard() {
+    return StudentCard(
+      name: _nameController.text,
+      grade: _gradeController.text,
+      idNumber: _studentIdController.text,
+      onConfirmCheckIn: () => _logCheckIn(
+        _nameController.text,
+        _studentIdController.text,
+        _gradeController.text,
       ),
     );
   }
@@ -83,16 +107,22 @@ class _SecurityPageState extends State<SecurityPage> {
     controller.scannedDataStream.listen((scanData) async {
       setState(() {
         result = scanData;
-        showStudentCard = true;
+        _showQR = false; // Hide QR code container
       });
 
       String? scannedCode = result.code;
       _processScannedData(scannedCode!);
+
+      // Trigger the flip animation
+      _controller.forward().then((_) {
+        setState(() {
+          showStudentCard = true;
+        });
+      });
     });
   }
 
   void _processScannedData(String data) {
-    // Assuming the data format is "Name-StudentID-Grade"
     List<String> parts = data.split('-');
 
     if (parts.length == 3) {
@@ -115,9 +145,9 @@ class _SecurityPageState extends State<SecurityPage> {
   }
 
   void _manualCheckIn() {
-    String name = _nameController.text;
-    String studentID = _studentIdController.text;
-    String grade = _gradeController.text;
+    String name = _nameController.text.trim();
+    String studentID = _studentIdController.text.trim();
+    String grade = _gradeController.text.trim();
 
     if (name.isNotEmpty && studentID.isNotEmpty && grade.isNotEmpty) {
       setState(() {
@@ -150,13 +180,12 @@ class _SecurityPageState extends State<SecurityPage> {
         content: Text('Check-in logged successfully!'),
       ),
     );
-  }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _studentIdController.dispose();
-    _gradeController.dispose();
-    super.dispose();
+    _nameController.clear();
+    _studentIdController.clear();
+    _gradeController.clear();
+    setState(() {
+      showStudentCard = false;
+    });
   }
 }

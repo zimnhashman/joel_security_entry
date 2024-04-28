@@ -26,13 +26,25 @@ class StudentCard extends StatelessWidget {
             Text(
               'Name: $name',
               style: const TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.left, // Align text from left to right
+              textDirection: TextDirection.ltr, // Text direction left to right
             ),
-            Text('Grade: $grade'),
-            Text('ID Number: $idNumber'),
+            Text(
+              'Grade: $grade',
+              textAlign: TextAlign.left, // Align text from left to right
+              textDirection: TextDirection.ltr, // Text direction left to right
+            ),
+            Text(
+              'ID Number: $idNumber',
+              textAlign: TextAlign.left, // Align text from left to right
+              textDirection: TextDirection.ltr, // Text direction left to right
+            ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: onConfirmCheckIn,
-              child: const Text('Confirm Check-in'),
+            Center(
+              child: ElevatedButton(
+                onPressed: onConfirmCheckIn,
+                child: const Text('Confirm Check-in'),
+              ),
             ),
           ],
         ),

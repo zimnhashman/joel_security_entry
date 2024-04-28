@@ -20,8 +20,8 @@ class _ClockInRecordsPageState extends State<ClockInRecordsPage> {
     _fetchClockInRecords();
   }
 
-  Future<void> _fetchClockInRecords() async {
-    List<Map<String, dynamic>> records = await DatabaseHelper.getAllClockInRecords();
+  Future<void> _fetchClockInRecords()  async {
+    List<Map<String, dynamic>> records =  await DatabaseHelper.getAllClockInRecords();
     List<ClockInRecord> clockInRecords = records.map((record) {
       return ClockInRecord(
         studentName: record['studentName'],
@@ -50,13 +50,15 @@ class _ClockInRecordsPageState extends State<ClockInRecordsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Clock-In Records'),
+        title: const Text('Clock-In Records', style: TextStyle(
+          color: Colors.white,
+        ),),
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(

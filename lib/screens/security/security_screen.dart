@@ -1,53 +1,23 @@
 import 'package:flutter/material.dart';
-import 'clock_in_records_page.dart'; // Import your Clock-In records page
-import 'customize_student_page.dart'; // Import your Customize student page
+import 'package:joel_security_entry/screens/security/scanner_screen.dart';
+import 'package:joel_security_entry/screens/security/security_external.dart';
 
-class AdminScreen extends StatefulWidget {
-  const AdminScreen({super.key});
+
+class SecurityDashboard extends StatefulWidget {
+  const SecurityDashboard({super.key});
 
   @override
-  State<AdminScreen> createState() => _AdminScreenState();
+  State<SecurityDashboard> createState() => _SecurityDashboardState();
 }
 
-class _AdminScreenState extends State<AdminScreen> {
+class _SecurityDashboardState extends State<SecurityDashboard> {
 
   int _currentIndex = 0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Screen', style: TextStyle(color: Colors.white),),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text('Admin Menu'),
-            ),
-            ListTile(
-              title: const Text('Clock-In Records'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ClockInRecordsPage()),
-                );
-              },
-            ),
-            ListTile(
-              title: const Text('Customize Student'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CustomizeStudentPage(studentID: '',)),
-                );
-              },
-            ),
-          ],
-        ),
+        title: const Text('Security Dashboard', style: TextStyle(color: Colors.white),),
       ),
       body: Center(
         child: Column(
@@ -63,7 +33,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const ClockInRecordsPage()),
+                        MaterialPageRoute(builder: (context) => const SecurityPage()),
                       );
                     },
                     child: const Card(
@@ -79,9 +49,9 @@ class _AdminScreenState extends State<AdminScreen> {
                             Icon(Icons.history,
                                 size: 50, color: Colors.white),
                             Text(
-                              'Clock-In Records',
+                              'Internal Check In',
                               style: TextStyle(
-                                color: Colors.white,
+                                  color: Colors.white,
                                   fontSize: 16, fontWeight: FontWeight.w500),
                             )
                           ],
@@ -103,7 +73,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const CustomizeStudentPage(studentID: '')),
+                        MaterialPageRoute(builder: (context) => const ClockInRecordsInputPage()),
                       );
                     },
                     child: const Card(
@@ -119,9 +89,9 @@ class _AdminScreenState extends State<AdminScreen> {
                             Icon(Icons.edit,
                                 size: 50, color: Colors.white),
                             Text(
-                              'Customize Student',
+                              'External Check-In',
                               style: TextStyle(
-                                color: Colors.white,
+                                  color: Colors.white,
                                   fontSize: 16, fontWeight: FontWeight.w500),
                             )
                           ],
@@ -146,24 +116,24 @@ class _AdminScreenState extends State<AdminScreen> {
             // Navigate to Clock-In Records page
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ClockInRecordsPage()),
+              MaterialPageRoute(builder: (context) => const SecurityPage()),
             );
           } else if (index == 1) {
             // Navigate to Customize Student page
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const CustomizeStudentPage(studentID: '')),
+              MaterialPageRoute(builder: (context) => const ClockInRecordsInputPage()),
             );
           }
         },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
-            label: 'Clock-In Records',
+            label: 'Internal Check-In',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.edit),
-            label: 'Customize Student',
+            label: 'External Check-In',
           ),
         ],
       ),
