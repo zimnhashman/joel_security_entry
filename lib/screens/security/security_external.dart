@@ -1,7 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:joel_security_entry/database/database_helper.dart';
 
 class ClockInRecordsInputPage extends StatefulWidget {
   const ClockInRecordsInputPage({Key? key}) : super(key: key);
@@ -18,7 +16,7 @@ class _ClockInRecordsInputPageState extends State<ClockInRecordsInputPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Clock-In Records Input'),
+        title: const Text('Clock-In Records Input', style: TextStyle(color: Colors.white),),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -26,18 +24,18 @@ class _ClockInRecordsInputPageState extends State<ClockInRecordsInputPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             TextField(
-              controller: _nationalIdController,
-              decoration: const InputDecoration(labelText: 'National ID'),
-            ),
-            const SizedBox(height: 10.0),
-            TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            const SizedBox(height: 10.0,),
+            TextField(
+              controller: _nationalIdController,
+              decoration: const InputDecoration(labelText: 'National ID'),
             ),
             const SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () {
-                _saveClockInRecord();
+                _logCheckIn(_nameController.text, _nationalIdController.text);
               },
               child: const Text('Save Clock-In Record'),
             ),
@@ -47,40 +45,23 @@ class _ClockInRecordsInputPageState extends State<ClockInRecordsInputPage> {
     );
   }
 
-  Future<void> _saveClockInRecord() async {
-    String nationalId = _nationalIdController.text;
-    String name = _nameController.text;
+  void _logCheckIn(String name, String nationalID,) async {
+    String currentDate = DateTime.now().toIso8601String(); // Get current date and time
+    Map<String, dynamic> checkInData = {
+      'studentID': nationalID,
+      'name': name,
+      'grade': 'EXTERNAL',
+      'checkInTime': currentDate,
+      'date': DateTime.now().toString().split(' ')[0], // Get current date
+    };
 
-    if (nationalId.isNotEmpty && name.isNotEmpty) {
-      String currentDate = DateTime.now().toIso8601String();
-      Map<String, dynamic> clockInRecord = {
-        'nationalId': nationalId,
-        'name': name,
-        'clockInTime': currentDate,
-      };
+    await DatabaseHelper.insertCheckIn(checkInData);
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String>? clockInRecordsJson = prefs.getStringList('clock_in_records');
-      List<Map<String, dynamic>> clockInRecords =
-          clockInRecordsJson?.map((json) => jsonDecode(json)).cast<Map<String, dynamic>>().toList() ?? [];
-      clockInRecords.add(clockInRecord);
-      await prefs.setStringList('clock_in_records', clockInRecords.map((record) => jsonEncode(record)).toList());
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Check-in logged successfully!'),
+      ),
+    );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Clock-In Record saved successfully!'),
-        ),
-      );
-
-      // Clear the text fields after saving
-      _nationalIdController.clear();
-      _nameController.clear();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter National ID and Name!'),
-        ),
-      );
-    }
   }
 }

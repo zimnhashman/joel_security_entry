@@ -21,15 +21,18 @@ class DatabaseHelper {
     // Open the database. Create if it doesn't exist
     return openDatabase(
       path,
-      version: 2,
+      version: 8,
       onCreate: (db, version) async {
         await db.execute(
           '''
           CREATE TABLE $checkInsTableName(
-            studentID TEXT PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            studentID TEXT,
+            name TEXT,
             grade TEXT,
             checkInTime TEXT,
-            date TEXT
+            date TEXT,
+            UNIQUE(studentID, checkInTime) ON CONFLICT REPLACE
           )
           ''',
         );
@@ -95,10 +98,15 @@ class DatabaseHelper {
   }
 
   // CRUD operations for check-ins
-  static Future<void> insertCheckIn(Map<String, dynamic> checkInData) async {
-    Database db = await database;
-    await db.insert(checkInsTableName, checkInData);
-  }
+  // static Future<void> insertCheckIn(Map<String, dynamic> checkInData) async {
+  //   Database db = await database;
+  //   try {
+  //     await db.insert(checkInsTableName, checkInData);
+  //   } catch (e) {
+  //     print('Duplicate insertion detected: $e');
+  //   }
+  // }
+
 
   static Future<List<Map<String, dynamic>>> getAllCheckIns() async {
     Database db = await database;
@@ -128,4 +136,40 @@ class DatabaseHelper {
     Database db = await database;
     return db.query(checkInsTableName);
   }
+
+  // Updated insertCheckIn method for handling multiple check-ins for the same student
+  static Future<void> insertMultipleCheckIns(List<Map<String, dynamic>> checkInsData) async {
+    Database db = await database;
+    Batch batch = db.batch();
+    for (var checkInData in checkInsData) {
+      batch.insert(checkInsTableName, checkInData);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  static Future<void> insertCheckIn(Map<String, dynamic> checkInData) async {
+    Database db = await database;
+    try {
+      await db.insert(checkInsTableName, checkInData);
+    } catch (e) {
+      if (e is DatabaseException && e.isUniqueConstraintError()) {
+        // Handle the UNIQUE constraint violation (duplicate insertion)
+        print('Duplicate insertion detected: $e');
+
+        // Update the existing record with the same studentID and checkInTime
+        await db.update(
+          checkInsTableName,
+          checkInData,
+          where: 'studentID = ? AND checkInTime = ?',
+          whereArgs: [checkInData['studentID'], checkInData['checkInTime']],
+        );
+
+        print('Existing record updated.');
+      } else {
+        // Handle other database exceptions
+        print('Error inserting check-in: $e');
+      }
+    }
+  }
+
 }

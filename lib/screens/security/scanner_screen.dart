@@ -168,6 +168,7 @@ class _SecurityPageState extends State
     String currentDate = DateTime.now().toIso8601String(); // Get current date and time
     Map<String, dynamic> checkInData = {
       'studentID': studentID,
+      'name': name,
       'grade': grade,
       'checkInTime': currentDate,
       'date': DateTime.now().toString().split(' ')[0], // Get current date

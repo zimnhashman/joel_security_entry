@@ -1,11 +1,17 @@
 class ClockInRecord {
-  final String studentName;
-  final String clockInTime;
+  final int? id;
+  final String studentID;
+  final String? name;
+  final String grade;
+  final String checkInTime;
   final String date;
 
   ClockInRecord({
-    required this.studentName,
-    required this.clockInTime,
+    required this.id,
+    required this.studentID,
+    required this.name,
+    required this.grade,
+    required this.checkInTime,
     required this.date,
   });
 }

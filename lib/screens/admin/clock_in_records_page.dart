@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:joel_security_entry/database/database_helper.dart'; // Import your database helper
-import 'package:joel_security_entry/models/clock_in_record.dart'; // Import your clock-in records model
+import 'package:joel_security_entry/database/database_helper.dart';
+import 'package:joel_security_entry/models/clock_in_record.dart';
+import 'package:joel_security_entry/widgets/fancy_list_tile.dart';
+// Import your DatabaseHelper
 
 class ClockInRecordsPage extends StatefulWidget {
   const ClockInRecordsPage({super.key});
@@ -10,9 +12,7 @@ class ClockInRecordsPage extends StatefulWidget {
 }
 
 class _ClockInRecordsPageState extends State<ClockInRecordsPage> {
-  List<ClockInRecord> _clockInRecords = [];
-  DateTime _startDate = DateTime.now().subtract(const Duration(days: 7)); // Default start date
-  DateTime _endDate = DateTime.now(); // Default end date
+  late Future<List<ClockInRecord>> _clockInRecordsFuture;
 
   @override
   void initState() {
@@ -20,101 +20,108 @@ class _ClockInRecordsPageState extends State<ClockInRecordsPage> {
     _fetchClockInRecords();
   }
 
-  Future<void> _fetchClockInRecords()  async {
-    List<Map<String, dynamic>> records =  await DatabaseHelper.getAllClockInRecords();
-    List<ClockInRecord> clockInRecords = records.map((record) {
-      return ClockInRecord(
-        studentName: record['studentName'],
-        clockInTime: record['clockInTime'],
-        date: record['date'],
-      );
-    }).toList();
-
-    setState(() {
-      _clockInRecords = clockInRecords;
+  Future<void> _fetchClockInRecords() async {
+    _clockInRecordsFuture = DatabaseHelper.getAllClockInRecords().then((List<Map<String, dynamic>> records) {
+      return records.map((record) {
+        return ClockInRecord(
+          id: record['id'] as int?,
+          studentID: record['studentID'],
+          name: record['name'],
+          grade: record['grade'],
+          checkInTime: record['checkInTime'],
+          date: record['date'],
+        );
+      }).toList();
     });
   }
 
-  void _filterRecords(DateTime startDate, DateTime endDate) {
-    List<ClockInRecord> filteredRecords = _clockInRecords.where((record) {
-      DateTime recordDate = DateTime.parse(record.date);
-      return recordDate.isAfter(startDate) && recordDate.isBefore(endDate);
-    }).toList();
+ deconstructDate(checkInTime) {
+    String dateTimeString = checkInTime;
 
-    setState(() {
-      _clockInRecords = filteredRecords;
-    });
+    // Split the date and time parts
+    List<String> dateTimeParts = dateTimeString.split('T');
+    String datePart = dateTimeParts[0];
+    String timePart = dateTimeParts[1];
+
+    // Split the date into year, month, and day
+    List<String> dateParts = datePart.split('-');
+    int year = int.parse(dateParts[0]);
+    int month = int.parse(dateParts[1]);
+    int day = int.parse(dateParts[2]);
+
+    // Split the time into hour, minute, second, and millisecond
+    List<String> timeParts = timePart.split(':');
+    int hour = int.parse(timeParts[0]);
+    int minute = int.parse(timeParts[1]);
+    double second = double.parse(timeParts[2].split('.')[0]);
+    int millisecond = int.parse(timeParts[2].split('.')[1]);
+
+    String simpleDateFormat = '${day.toString().padLeft(2, '0')}-${month.toString().padLeft(2, '0')}-$year';
+    return simpleDateFormat;
+  }
+
+  deconstructTime(checkInTime) {
+    String dateTimeString = checkInTime;
+
+    // Split the date and time parts
+    List<String> dateTimeParts = dateTimeString.split('T');
+    String datePart = dateTimeParts[0];
+    String timePart = dateTimeParts[1];
+
+    // Split the date into year, month, and day
+    List<String> dateParts = datePart.split('-');
+    int year = int.parse(dateParts[0]);
+    int month = int.parse(dateParts[1]);
+    int day = int.parse(dateParts[2]);
+
+    // Split the time into hour, minute, second, and millisecond
+    List<String> timeParts = timePart.split(':');
+    int hour = int.parse(timeParts[0]);
+    int minute = int.parse(timeParts[1]);
+    double second = double.parse(timeParts[2].split('.')[0]);
+    int millisecond = int.parse(timeParts[2].split('.')[1]);
+
+    String simpleTimeFormat = '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    return simpleTimeFormat;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Clock-In Records', style: TextStyle(
-          color: Colors.white,
-        ),),
+        title: const Text('Clock-In Records', style: TextStyle(color: Colors.white),),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    _showDatePicker(context, true); // Show start date picker
-                  },
-                  child: Text('Start Date: ${_startDate.toString().split(' ')[0]}'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _showDatePicker(context, false); // Show end date picker
-                  },
-                  child: Text('End Date: ${_endDate.toString().split(' ')[0]}'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _filterRecords(_startDate, _endDate); // Apply filter
-                  },
-                  child: const Text('Apply Filter'),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _clockInRecords.length,
+      body: FutureBuilder<List<ClockInRecord>>(
+        future: _clockInRecordsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            List<ClockInRecord> records = snapshot.data!;
+            return ListView.builder(
+              itemCount: records.length,
               itemBuilder: (context, index) {
-                ClockInRecord record = _clockInRecords[index];
-                return ListTile(
-                  title: Text(record.studentName),
-                  subtitle: Text('Clock-In Time: ${record.clockInTime} - Date: ${record.date}'),
+                ClockInRecord record = records[index];
+                return FancyListTile(
+                  name: '${record.name}',
+                  grade: record.grade == 'EXTERNAL' ? 'EXTERNAL' : 'Grade: ${record.grade}',
+                  id: 'Student ID: ${record.studentID}',
+                  time: deconstructTime(record.checkInTime),
+                  date: deconstructDate(record.checkInTime),
                 );
               },
-            ),
-          ),
-        ],
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error fetching data: ${snapshot.error}'),
+            );
+          }
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
       ),
     );
   }
 
-  void _showDatePicker(BuildContext context, bool isStartDate) async {
-    DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: isStartDate ? _startDate : _endDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
 
-    if (selectedDate != null) {
-      setState(() {
-        if (isStartDate) {
-          _startDate = selectedDate;
-        } else {
-          _endDate = selectedDate;
-        }
-      });
-    }
-  }
+
 }
