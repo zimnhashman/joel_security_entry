@@ -26,7 +26,7 @@ class _AdminScreenState extends State<AdminScreen> {
               decoration: BoxDecoration(
                 color: Colors.blue,
               ),
-              child: Text('Admin Menu'),
+              child: Text('Admin Menu', style: TextStyle(color:Colors.white),),
             ),
             ListTile(
               title: const Text('Clock-In Records'),

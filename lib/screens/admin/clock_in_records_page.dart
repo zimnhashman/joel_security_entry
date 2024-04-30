@@ -51,10 +51,10 @@ class _ClockInRecordsPageState extends State<ClockInRecordsPage> {
 
     // Split the time into hour, minute, second, and millisecond
     List<String> timeParts = timePart.split(':');
-    int hour = int.parse(timeParts[0]);
-    int minute = int.parse(timeParts[1]);
-    double second = double.parse(timeParts[2].split('.')[0]);
-    int millisecond = int.parse(timeParts[2].split('.')[1]);
+    int.parse(timeParts[0]);
+    int.parse(timeParts[1]);
+    double.parse(timeParts[2].split('.')[0]);
+    int.parse(timeParts[2].split('.')[1]);
 
     String simpleDateFormat = '${day.toString().padLeft(2, '0')}-${month.toString().padLeft(2, '0')}-$year';
     return simpleDateFormat;
@@ -70,16 +70,16 @@ class _ClockInRecordsPageState extends State<ClockInRecordsPage> {
 
     // Split the date into year, month, and day
     List<String> dateParts = datePart.split('-');
-    int year = int.parse(dateParts[0]);
-    int month = int.parse(dateParts[1]);
-    int day = int.parse(dateParts[2]);
+    int.parse(dateParts[0]);
+    int.parse(dateParts[1]);
+    int.parse(dateParts[2]);
 
     // Split the time into hour, minute, second, and millisecond
     List<String> timeParts = timePart.split(':');
     int hour = int.parse(timeParts[0]);
     int minute = int.parse(timeParts[1]);
-    double second = double.parse(timeParts[2].split('.')[0]);
-    int millisecond = int.parse(timeParts[2].split('.')[1]);
+    double.parse(timeParts[2].split('.')[0]);
+    int.parse(timeParts[2].split('.')[1]);
 
     String simpleTimeFormat = '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
     return simpleTimeFormat;

@@ -67,7 +67,7 @@ class _SecurityPageState extends State
                 return Transform(
                   transform: Matrix4.identity()
                     ..setEntry(3, 2, 0.002) // Perspective
-                    ..rotateY(math.pi * _animation.value), // Rotation
+                    ..rotateY(-math.pi * _animation.value), // Rotation
                   alignment: Alignment.center,
                   child: _showQR ? _buildQRContainer() : _buildStudentCard(),
                 );
@@ -91,14 +91,17 @@ class _SecurityPageState extends State
   }
 
   Widget _buildStudentCard() {
-    return StudentCard(
-      name: _nameController.text,
-      grade: _gradeController.text,
-      idNumber: _studentIdController.text,
-      onConfirmCheckIn: () => _logCheckIn(
-        _nameController.text,
-        _studentIdController.text,
-        _gradeController.text,
+    return Transform.flip(
+      flipX: true,
+      child: StudentCard(
+        name: _nameController.text,
+        grade: _gradeController.text,
+        idNumber: _studentIdController.text,
+        onConfirmCheckIn: () => _logCheckIn(
+          _nameController.text,
+          _studentIdController.text,
+          _gradeController.text,
+        ),
       ),
     );
   }
