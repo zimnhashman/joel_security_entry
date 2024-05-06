@@ -91,33 +91,35 @@ class _ClockInRecordsPageState extends State<ClockInRecordsPage> {
       appBar: AppBar(
         title: const Text('Clock-In Records', style: TextStyle(color: Colors.white),),
       ),
-      body: FutureBuilder<List<ClockInRecord>>(
-        future: _clockInRecordsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            List<ClockInRecord> records = snapshot.data!;
-            return ListView.builder(
-              itemCount: records.length,
-              itemBuilder: (context, index) {
-                ClockInRecord record = records[index];
-                return FancyListTile(
-                  name: '${record.name}',
-                  grade: record.grade == 'EXTERNAL' ? 'EXTERNAL' : 'Grade: ${record.grade}',
-                  id: 'Student ID: ${record.studentID}',
-                  time: deconstructTime(record.checkInTime),
-                  date: deconstructDate(record.checkInTime),
-                );
-              },
+      body: Expanded(
+        child: FutureBuilder<List<ClockInRecord>>(
+          future: _clockInRecordsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              List<ClockInRecord> records = snapshot.data!;
+              return ListView.builder(
+                itemCount: records.length,
+                itemBuilder: (context, index) {
+                  ClockInRecord record = records[index];
+                  return FancyListTile(
+                    name: '${record.name}',
+                    grade: record.grade == 'EXTERNAL' ? 'EXTERNAL' : 'Grade: ${record.grade}',
+                    id: 'Student ID: ${record.studentID}',
+                    time: deconstructTime(record.checkInTime),
+                    date: deconstructDate(record.checkInTime),
+                  );
+                },
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text('Error fetching data: ${snapshot.error}'),
+              );
+            }
+            return const Center(
+              child: CircularProgressIndicator(),
             );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text('Error fetching data: ${snapshot.error}'),
-            );
-          }
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
+          },
+        ),
       ),
     );
   }
